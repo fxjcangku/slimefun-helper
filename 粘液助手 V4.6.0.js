@@ -1,16 +1,20 @@
-'use strict';const filename = file.getName();
+'use strict';
+Hud.clearDraw2Ds();
+JsMacros.disableScriptListeners();
+const filename = file.getName();
 const filenameSplit = filename.replace(/\.(js|ts)$/, '').split('V');
 const AppConfig = Object.freeze({
     script: {
         name: filenameSplit.shift()?.trim() || '',
         version: filenameSplit.pop()?.trim() || '',
-        author: 'Jerinin',
+        maintainer: 'Jerinin',
     },
     file: {
         configDir: 'config',
         blacklistFile: '黑名单.json',
         workstationFile: '工作站.json',
         recipeFile: '配方.json',
+        guideDetectionFile: '指南识别.json',
     },
     timeout: {
         delayTime: 20,
@@ -90,6 +94,10 @@ const AppConfig = Object.freeze({
             brand: 0x55ffff,
             title: 0xffd65a,
             content: 0xf2f2f2,
+            make: 0x55ff88,
+            missing: 0xff6666,
+            queue: 0x66ccff,
+            muted: 0xaaaaaa,
         },
     },
     game: {
@@ -390,7 +398,29 @@ var Result;
     getFilename() {
         return FS.getName(this.configPath);
     }
-}class BaseRepository {
+}
+const GuideDetectionDefaults = {
+    autoEquipGuide: true,
+    acceptedRawIds: [
+        'minecraft:enchanted_book',
+        'minecraft:written_book',
+        'minecraft:writable_book',
+        'minecraft:book',
+        'minecraft:knowledge_book',
+    ],
+    acceptedNames: ['SlimeFun · 指南[右键打开]'],
+    acceptedNameKeywords: ['SlimeFun · 指南', 'Slimefun Guide', '粘液科技指南', '粘液指南'],
+    acceptedNbtKeywords: ['slimefun-wiki.guizhanss.cn/GPS', 'slimefun:slimefun_guide_mode'],
+    menuNameKeywords: {
+        back: ['返回', '上一页', 'Back'],
+        menu: ['主菜单', '指南', 'Menu'],
+        search: ['搜索', '查找', 'Search'],
+    },
+    offhandFallbackSlots: [45, 40],
+};
+const GuideDetectionLoader = new ConfigLoader(AppConfig.file.guideDetectionFile, GuideDetectionDefaults);
+let GuideDetectionConfig = GuideDetectionDefaults;
+class BaseRepository {
     constructor(filename, defaultValue) {
         this.defaultValue = defaultValue;
         this.data = new Map();
@@ -644,6 +674,19 @@ var PlayerHelper$1 = new PlayerHelper();class SlimefunHelper {
                 return false;
             return this.matchId(stack.id, ...targetIds);
         };
+        this.matchMenuItem = (item, role) => {
+            if (!item || item.isEmpty())
+                return false;
+            const targetId = this.MENU_IDS[role];
+            if (targetId && this.matchStack(item, targetId))
+                return true;
+            const keywordMap = GuideDetectionConfig.menuNameKeywords || {};
+            const keywords = Array.isArray(keywordMap[role.toLowerCase()])
+                ? keywordMap[role.toLowerCase()].map(String).filter(Boolean)
+                : [];
+            const name = String(item.name || '').replace(/§[0-9a-fk-or]/gi, '').toLowerCase();
+            return keywords.some((keyword) => name.includes(keyword.toLowerCase()));
+        };
         this.isSlimefun = (item) => {
             if (item?.name?.includes?.('工作台'))
                 return true;
@@ -688,10 +731,18 @@ var SlimefunHelper$1 = new SlimefunHelper();class InventoryHelper {
         return this.getSlot(this.getMainHandSlot());
     }
     getOffHandSlot() {
-        return this.getSlots('offhand')[0];
+        const inv = Player.openInventory();
+        const mappedSlots = this.getSlots('offhand');
+        if (mappedSlots.length > 0 && mappedSlots[0] >= 0 && mappedSlots[0] < inv.getTotalSlots())
+            return mappedSlots[0];
+        const fallbackSlots = Array.isArray(GuideDetectionConfig.offhandFallbackSlots)
+            ? GuideDetectionConfig.offhandFallbackSlots
+            : [];
+        return fallbackSlots.find((slot) => Number.isInteger(slot) && slot >= 0 && slot < inv.getTotalSlots()) ?? -1;
     }
     getOffHandItem() {
-        return this.getSlot(this.getOffHandSlot());
+        const slot = this.getOffHandSlot();
+        return slot >= 0 ? this.getSlot(slot) : null;
     }
     findFreeSlot(...mapIds) {
         return Player.openInventory().findFreeSlot(...mapIds);
@@ -977,6 +1028,12 @@ var SlimefunHelper$1 = new SlimefunHelper();class InventoryHelper {
                 }
             }
         }
+        const nbtString = String(itemNbt);
+        if (/slimefun:slimefun_guide_mode/i.test(nbtString))
+            return SlimefunHelper$1.GUIDE_ID;
+        const slimefunItem = nbtString.match(/slimefun:slimefun_item[^A-Za-z0-9_:-]+["']?([A-Za-z0-9_:-]+)/i);
+        if (slimefunItem?.[1])
+            return SlimefunHelper$1.normalize(slimefunItem[1]);
         return itemStack.getItemId().toString();
     }
     getItemCount(item, id, slot) {
@@ -1456,29 +1513,46 @@ var CraftingStateManager$1 = new CraftingStateManager();class GuideButtonManager
         this.startX = 0;
         this.startY = 0;
         this.initButtonPosition = (screen, inventory) => {
+            const screenWidth = screen.getWidth();
+            const screenHeight = screen.getHeight();
             if (inventory.is('3 Row Chest')) {
-                this.startY = Math.floor(screen.getHeight() / 2) - 83;
+                this.startY = Math.floor(screenHeight / 2) - 83;
             }
             else {
-                this.startY = Math.floor(screen.getHeight() / 2) - 110;
+                this.startY = Math.floor(screenHeight / 2) - 110;
             }
-            this.startX = Math.floor(screen.getWidth() / 2) + 92;
+            const gridWidth = this.BUTTON_WIDTH * 2 + 5;
+            this.startX = Math.max(4, Math.min(Math.floor(screenWidth / 2) + 92, screenWidth - gridWidth - 4));
+            this.startY = Math.max(4, Math.min(this.startY, screenHeight - this.BUTTON_HEIGHT - 4));
         };
         this.buildButton = (screen, buttons) => {
-            let offsetY = 0;
-            buttons.sort((a, b) => (a.weight || 0) - (b.weight || 0));
-            for (const button of buttons) {
-                if (!button.showCondition || button.showCondition(screen)) {
-                    screen
-                        .buttonBuilder()
-                        .message(button.text)
-                        .pos(this.startX, this.startY + (this.BUTTON_HEIGHT + 5) * offsetY)
-                        .size(this.BUTTON_WIDTH, this.BUTTON_HEIGHT)
-                        .action(JavaWrapper.methodToJavaAsync(button.callback))
-                        .build();
-                    offsetY++;
-                }
-            }
+            const visibleButtons = buttons
+                .sort((a, b) => (a.weight || 0) - (b.weight || 0))
+                .filter((button) => !button.showCondition || button.showCondition(screen));
+            const normalButtons = visibleButtons.filter((button) => !button.quantityGrid);
+            const quantityButtons = visibleButtons.filter((button) => button.quantityGrid);
+            normalButtons.forEach((button, index) => {
+                this.buildSingleButton(screen, button, this.startX, this.startY + (this.BUTTON_HEIGHT + 5) * index);
+            });
+            const gridStartY = this.startY + (this.BUTTON_HEIGHT + 5) * normalButtons.length;
+            quantityButtons.forEach((button, index) => {
+                const column = index % 2;
+                const row = Math.floor(index / 2);
+                const x = this.startX + column * (this.BUTTON_WIDTH + 5);
+                const y = gridStartY + row * (this.BUTTON_HEIGHT + 5);
+                this.buildSingleButton(screen, button, x, y);
+            });
+        };
+        this.buildSingleButton = (screen, button, x, y) => {
+            const buttonX = Math.max(4, Math.min(x, screen.getWidth() - this.BUTTON_WIDTH - 4));
+            const buttonY = Math.max(4, Math.min(y, screen.getHeight() - this.BUTTON_HEIGHT - 4));
+            screen
+                .buttonBuilder()
+                .message(button.text)
+                .pos(buttonX, buttonY)
+                .size(this.BUTTON_WIDTH, this.BUTTON_HEIGHT)
+                .action(JavaWrapper.methodToJavaAsync(button.callback))
+                .build();
         };
         this.addButtonsToScreen = (screenClassName, ...buttons) => {
             const currentButtons = this._elements.get(screenClassName) || [];
@@ -1496,7 +1570,8 @@ var CraftingStateManager$1 = new CraftingStateManager();class GuideButtonManager
                 return;
             this._processing = true;
             this.initButtonPosition(event.screen, event.inventory);
-            const buttons = this._elements.get(event.screen.getClass().getSimpleName());
+            const screenClassName = event.screen.getClass().getSimpleName();
+            const buttons = this._elements.get(screenClassName);
             if (buttons && buttons.length > 0)
                 this.buildButton(event.screen, buttons);
             this._processing = false;
@@ -1822,9 +1897,61 @@ class LRUCache {
 var MaterialCalculator$1 = new MaterialCalculator();class SlimefunGuideManager {
     constructor() {
         this.slimefunGuideClassName = '';
+        this.isGuideItem = (item) => {
+            if (!item || item.isEmpty())
+                return false;
+            if (SlimefunHelper$1.matchStack(item, SlimefunHelper$1.GUIDE_ID))
+                return true;
+            const itemId = String(item.id || '').toLowerCase();
+            const itemName = String(item.name || '').replace(/§[0-9a-fk-or]/gi, '').trim();
+            const nbtText = item.raw.getNBT() ? String(item.raw.getNBT()) : '';
+            const rawIds = Array.isArray(GuideDetectionConfig.acceptedRawIds)
+                ? GuideDetectionConfig.acceptedRawIds.map((id) => String(id).toLowerCase())
+                : [];
+            if (!rawIds.includes(itemId))
+                return false;
+            const names = Array.isArray(GuideDetectionConfig.acceptedNames)
+                ? GuideDetectionConfig.acceptedNames.map((name) => String(name).replace(/§[0-9a-fk-or]/gi, '').trim())
+                : [];
+            const nameKeywords = Array.isArray(GuideDetectionConfig.acceptedNameKeywords)
+                ? GuideDetectionConfig.acceptedNameKeywords.map(String).filter(Boolean)
+                : [];
+            const keywords = Array.isArray(GuideDetectionConfig.acceptedNbtKeywords)
+                ? GuideDetectionConfig.acceptedNbtKeywords.map(String).filter(Boolean)
+                : [];
+            const nameMatched = names.includes(itemName)
+                || nameKeywords.some((keyword) => itemName.toLowerCase().includes(keyword.toLowerCase()));
+            return nameMatched || keywords.some((keyword) => nbtText.toLowerCase().includes(keyword.toLowerCase()));
+        };
         this.checkHoldSfGuide = (offHand) => {
             const item = offHand ? InventoryHelper$1.getOffHandItem() : InventoryHelper$1.getMainHandItem();
-            return item && SlimefunHelper$1.matchStack(item, SlimefunHelper$1.GUIDE_ID);
+            return this.isGuideItem(item);
+        };
+        this.ensureGuideInOffhand = () => {
+            if (this.checkHoldSfGuide(true))
+                return true;
+            if (GuideDetectionConfig.autoEquipGuide === false)
+                return false;
+            const openedInventory = !InventoryHelper$1.isContainer();
+            if (openedInventory)
+                Player.openInventory().openGui();
+            const guide = InventoryHelper$1.getItems('main', 'hotbar').find(this.isGuideItem);
+            const offhandSlot = InventoryHelper$1.getOffHandSlot();
+            if (!guide || offhandSlot < 0) {
+                if (openedInventory)
+                    InventoryHelper$1.closeContainer();
+                return false;
+            }
+            InventoryHelper$1.swap(guide.slot, offhandSlot);
+            Client.waitTick(2);
+            const equipped = this.checkHoldSfGuide(true);
+            if (!equipped)
+                InventoryHelper$1.swap(guide.slot, offhandSlot);
+            if (openedInventory)
+                InventoryHelper$1.closeContainer();
+            if (equipped)
+                Logger$1.success(`检测到<${guide.name}>不在副手，已经自动放置`);
+            return equipped;
         };
         this.Enter = {
             clickSlot: (slot, quick = false) => {
@@ -1859,6 +1986,12 @@ var MaterialCalculator$1 = new MaterialCalculator();class SlimefunGuideManager {
             buttons.push(this.readCurrentBtn());
             buttons.push(this.blacklistBtn('add', '添加到黑名单'));
             buttons.push(this.blacklistBtn('remove', '从黑名单移除'));
+            buttons.push(this.quantityBtn('数量+1', 1));
+            buttons.push(this.quantityBtn('数量-1', -1));
+            buttons.push(this.quantityBtn('数量+32', 32));
+            buttons.push(this.quantityBtn('数量-32', -32));
+            buttons.push(this.quantityBtn('数量+64', 64));
+            buttons.push(this.quantityBtn('数量-64', -64));
             GuideButtonManager$1.addButtonsToScreen(this.slimefunGuideClassName, ...buttons);
         };
         this.check = () => {
@@ -1953,6 +2086,25 @@ var MaterialCalculator$1 = new MaterialCalculator();class SlimefunGuideManager {
             };
             return { text, showCondition, callback };
         };
+        this.quantityBtn = (text, countDelta) => {
+            const showCondition = () => {
+                const recipeDetail = this.getRecipeDetail();
+                return !!recipeDetail && !recipeDetail.outputItem.isEmpty();
+            };
+            const callback = () => {
+                if (!this.check())
+                    return;
+                const recipeDetail = this.getRecipeDetail();
+                if (!recipeDetail)
+                    return;
+                AutoCrafterManager$1.modifyMakeTable(
+                    recipeDetail.outputItem.id,
+                    recipeDetail.outputItem.name,
+                    countDelta
+                );
+            };
+            return { text, showCondition, callback, quantityGrid: true };
+        };
         this.readCraftingRecipe = () => {
             const recipeDetail = this.getRecipeDetail();
             if (!recipeDetail)
@@ -2030,11 +2182,9 @@ var MaterialCalculator$1 = new MaterialCalculator();class SlimefunGuideManager {
         if (!Hud.isContainer())
             return false;
         const index = InventoryHelper$1.getItems('container').findIndex((item) => {
-            return SlimefunHelper$1.matchStack(item, ...[
-                SlimefunHelper$1.MENU_IDS.Back,
-                SlimefunHelper$1.MENU_IDS.Menu,
-                SlimefunHelper$1.MENU_IDS.Search,
-            ]);
+            return SlimefunHelper$1.matchMenuItem(item, 'Back')
+                || SlimefunHelper$1.matchMenuItem(item, 'Menu')
+                || SlimefunHelper$1.matchMenuItem(item, 'Search');
         });
         if (index === -1)
             return false;
@@ -2045,12 +2195,12 @@ var MaterialCalculator$1 = new MaterialCalculator();class SlimefunGuideManager {
             const items = InventoryHelper$1.getItemsWithEmpty('container');
             if (items.length < 27)
                 return false;
-            if (SlimefunHelper$1.matchStack(items[1], SlimefunHelper$1.MENU_IDS.Back)) {
-                if (SlimefunHelper$1.matchStack(items[7], SlimefunHelper$1.MENU_IDS.Search)) {
+            if (SlimefunHelper$1.matchMenuItem(items[1], 'Back')) {
+                if (SlimefunHelper$1.matchMenuItem(items[7], 'Search')) {
                     const title = InventoryHelper$1.getContainerTitle();
                     return title !== '逻辑工艺';
                 }
-                return items[7].id.endsWith('_ICON');
+                return !items[7].isEmpty() && InventoryHelper$1.getContainerTitle() !== '逻辑工艺';
             }
         }
         return false;
@@ -2070,14 +2220,14 @@ var MaterialCalculator$1 = new MaterialCalculator();class SlimefunGuideManager {
             if (!items[c.workSlot] || items[c.workSlot].isEmpty())
                 return false;
             if (!items[c.outputSlot] ||
-                items[c.outputSlot].isEmpty() ||
-                !SlimefunHelper$1.isSlimefun(items[c.outputSlot]))
+                items[c.outputSlot].isEmpty())
                 return false;
             if (c.extraValid?.slots) {
                 const extraValidSlots = Object.entries(c.extraValid.slots).every(([slotStr, expectedId]) => {
                     if (slotStr.startsWith('OR')) {
                         const slots = slotStr.split('|').slice(1).map(Number);
-                        return slots.some((slot) => SlimefunHelper$1.matchId(items[slot].id, expectedId));
+                        return slots.some((slot) => SlimefunHelper$1.matchId(items[slot].id, expectedId)
+                            || expectedId === 'SLIMEFUN:_UI_BACK' && SlimefunHelper$1.matchMenuItem(items[slot], 'Back'));
                     }
                     else if (slotStr.startsWith('AND')) {
                         const slots = slotStr.split('|').slice(1).map(Number);
@@ -2093,7 +2243,7 @@ var MaterialCalculator$1 = new MaterialCalculator();class SlimefunGuideManager {
             }
             if (c.extraValid?.workIds) {
                 const validWorkstation = c.extraValid.workIds.some((id) => SlimefunHelper$1.matchStack(items[c.workSlot], id));
-                if (!validWorkstation)
+                if (!validWorkstation && String(items[c.workSlot].id || '').startsWith('SLIMEFUN:'))
                     return false;
             }
             const outputItem = items[c.outputSlot];
@@ -2124,8 +2274,6 @@ var MaterialCalculator$1 = new MaterialCalculator();class SlimefunGuideManager {
             return null;
         if (!outputItem || outputItem.isEmpty())
             return null;
-        if (!SlimefunHelper$1.isSlimefun(outputItem))
-            return null;
         return {
             type: config.type,
             workItem,
@@ -2137,7 +2285,10 @@ var MaterialCalculator$1 = new MaterialCalculator();class SlimefunGuideManager {
         };
     }
     initialize(offHand = false) {
-        if (!this.checkHoldSfGuide(offHand)) {
+        if (offHand && !this.ensureGuideInOffhand()) {
+            throw new Error('背包和副手中均未找到<粘液科技指南>');
+        }
+        if (!offHand && !this.checkHoldSfGuide(false)) {
             throw new Error(`需要${offHand ? '副手' : '主手'}持有<粘液科技指南>`);
         }
         if (!InventoryHelper$1.openContainerForItem(offHand)) {
@@ -2161,45 +2312,48 @@ var SlimefunGuideManager$1 = new SlimefunGuideManager();class HudManager {
             this._d2d.unregister();
         };
         this.initHud = () => {
+            const width = this._d2d.getWidth();
             const height = this._d2d.getHeight();
-            const [top, middle, bottom] = [
-                AppConfig.ui.topPercent,
-                AppConfig.ui.middlePercent,
-                AppConfig.ui.bottomPercent,
-            ].map((n) => Math.round(height * (n / 100)));
-            const [margin, colWidth, lineHeight] = [
-                AppConfig.ui.margin,
-                AppConfig.ui.columnWidth,
-                AppConfig.ui.lineHeight,
+            const margin = Math.max(8, AppConfig.ui.margin * 2);
+            const lineHeight = AppConfig.ui.lineHeight;
+            const top = Math.max(32, Math.round(height * 0.22));
+            const bottom = Math.min(height - 12, Math.round(height * 0.82));
+            const columnGap = 10;
+            const columnWidth = Math.floor((width - margin * 2 - columnGap * 2) / 3);
+            const columns = [
+                { data: this._make, title: '制作需求 · 0', color: AppConfig.ui.colors.make },
+                { data: this._missing, title: '缺失材料 · 0', color: AppConfig.ui.colors.missing },
+                { data: this._queue, title: '合成队列 · 0', color: AppConfig.ui.colors.queue },
             ];
-            this.drawText(`脚本名称：${AppConfig.script.name} ${AppConfig.script.version}`, AppConfig.ui.leftMargin, top - lineHeight - margin, AppConfig.ui.colors.brand);
-            this.drawText(`作者：${AppConfig.script.author}`, AppConfig.ui.leftMargin, top - lineHeight * 2 - margin, AppConfig.ui.colors.brand);
-            this.draw(this._make, '制作列表', top, middle - margin, AppConfig.ui.leftMargin, lineHeight);
-            this.draw(this._missing, '材料列表', middle, bottom - margin, AppConfig.ui.leftMargin, lineHeight);
-            this.draw(this._queue, '合成队列: (0)', top, bottom - margin, margin + colWidth + AppConfig.ui.leftMargin, lineHeight);
+            this.drawText(`§l${AppConfig.script.name} §b${AppConfig.script.version}`, margin, top - lineHeight * 2 - 4, AppConfig.ui.colors.brand);
+            this.drawText(`§7维护者 §f§l${AppConfig.script.maintainer}`, margin, top - lineHeight - 4, AppConfig.ui.colors.muted);
+            columns.forEach((column, index) => {
+                const x = margin + index * (columnWidth + columnGap);
+                this.draw(column.data, column.title, top, bottom, x, lineHeight, column.color, columnWidth);
+            });
         };
-        this.draw = (o, title, startY, endY, startX, lineHeight) => {
-            for (let y = startY; y <= endY; y += lineHeight) {
-                if (y === startY) {
-                    o.title = this.drawText(title, startX, y, AppConfig.ui.colors.title);
-                }
-                else {
-                    const text = this.drawText('', startX, y, AppConfig.ui.colors.content);
-                    if (text)
-                        o.list.push(text);
-                }
+        this.draw = (o, title, startY, endY, startX, lineHeight, titleColor, columnWidth) => {
+            o.title = this.drawText(`§l${title}`, startX, startY, titleColor);
+            const separatorLength = Math.max(8, Math.floor(columnWidth / 6));
+            this.drawText('─'.repeat(separatorLength), startX, startY + lineHeight, AppConfig.ui.colors.muted);
+            for (let y = startY + lineHeight * 2; y <= endY; y += lineHeight) {
+                const text = this.drawText('', startX, y, AppConfig.ui.colors.content);
+                if (text)
+                    o.list.push(text);
             }
         };
         this.updateMakeHud = (list) => {
             EventHelper$1.once('Tick', () => {
                 this._make.list.forEach((t) => t.setText(''));
+                this._make.title.setText(`§l制作需求 · ${list.length}`);
                 if (list.isEmptyOrZero()) {
+                    this._make.list[0]?.setText('§7暂无制作需求');
                     return;
                 }
                 let i = 0;
                 const len = this._make.list.length;
                 for (const item of list) {
-                    this._make.list[i].setText(`§l${item.name} => ${item.count}`);
+                    this._make.list[i].setText(`§f§l${item.name}  §a×${item.count}`);
                     if (++i === len)
                         break;
                 }
@@ -2208,20 +2362,22 @@ var SlimefunGuideManager$1 = new SlimefunGuideManager();class HudManager {
         this.updateMissingHud = (list) => {
             EventHelper$1.once('Tick', () => {
                 this._missing.list.forEach((v) => v.setText(''));
+                this._missing.title.setText(`§l缺失材料 · ${list.length}`);
                 if (list.isEmptyOrZero()) {
+                    this._missing.list[0]?.setText('§a材料充足');
                     return;
                 }
                 let i = 0;
                 const len = this._missing.list.length;
                 for (const { name, count } of list) {
                     if (count < AppConfig.game.maxItemStackSize) {
-                        this._missing.list[i].setText(`§l${name} => ${count}`);
+                        this._missing.list[i].setText(`§f§l${name}  §c缺${count}`);
                     }
                     else {
                         let numStr = `${Math.floor(count / AppConfig.game.maxItemStackSize)} * ${AppConfig.game.maxItemStackSize}`;
                         if (count % AppConfig.game.maxItemStackSize !== 0)
                             numStr += ` + ${count % AppConfig.game.maxItemStackSize}`;
-                        this._missing.list[i].setText(`§l${name} => ${numStr}`);
+                        this._missing.list[i].setText(`§f§l${name}  §c缺${numStr}`);
                     }
                     if (++i === len - 1 && list.length > len) {
                         const remainNum = list.length - len + 1;
@@ -2234,14 +2390,15 @@ var SlimefunGuideManager$1 = new SlimefunGuideManager();class HudManager {
         this.updateQueueHud = (list) => {
             EventHelper$1.once('Tick', () => {
                 this._queue.list.forEach((v) => v.setText(''));
-                this._queue.title.setText(`§l合成队列: (${list.length})`);
+                this._queue.title.setText(`§l合成队列 · ${list.length}`);
                 if (list.isEmptyOrZero()) {
+                    this._queue.list[0]?.setText('§7队列为空');
                     return;
                 }
                 let i = 0;
                 const len = this._queue.list.length;
                 for (const { name, count } of list) {
-                    this._queue.list[i].setText(`§l${name} => ${count}`);
+                    this._queue.list[i].setText(`§f§l${name}  §b×${count}`);
                     if (++i === len - 1 && list.length > len) {
                         const remainNum = list.length - len + 1;
                         this._queue.list[i].setText(`§l... ... => ${remainNum}`);
@@ -3174,6 +3331,7 @@ var AutoCrafterManager$1 = new AutoCrafterManager();class Application {
     constructor() {
         this.isInitialized = false;
         this._isRunning = false;
+        this.guideCheckTicks = 0;
     }
     get isRunning() {
         return this._isRunning;
@@ -3185,6 +3343,10 @@ var AutoCrafterManager$1 = new AutoCrafterManager();class Application {
         Logger$1.logf('');
         Logger$1.info('脚本初始化...');
         try {
+            const guideConfigResult = GuideDetectionLoader.read();
+            if (!guideConfigResult.success)
+                throw new Error(guideConfigResult.error);
+            GuideDetectionConfig = guideConfigResult.data;
             BlacklistRepository$1.initialize();
             RecipeRepository$1.initialize();
             WorkstationRepository$1.initialize();
@@ -3212,7 +3374,23 @@ var AutoCrafterManager$1 = new AutoCrafterManager();class Application {
         }
         this._isRunning = true;
         Logger$1.info('脚本已启动');
-        toggle.basicLoop(() => AutoCrafterManager$1.calcDebounce.processTick(), 1);
+        toggle.basicLoop(() => {
+            AutoCrafterManager$1.calcDebounce.processTick();
+            if (++this.guideCheckTicks < 20)
+                return;
+            this.guideCheckTicks = 0;
+            if (GuideDetectionConfig.autoEquipGuide === false
+                || !CraftingStateManager$1.isIdle()
+                || Hud.getOpenScreen()
+                || SlimefunGuideManager$1.checkHoldSfGuide(true))
+                return;
+            try {
+                SlimefunGuideManager$1.ensureGuideInOffhand();
+            }
+            catch (error) {
+                Logger$1.debug('自动放置指南失败', error);
+            }
+        }, 1);
     }
     stop() {
         if (!this._isRunning) {
@@ -3227,6 +3405,7 @@ var AutoCrafterManager$1 = new AutoCrafterManager();class Application {
             AutoCrafterManager$1.unregisterEvents();
             InventoryHelper$1.closeContainer();
             HudManager$1.unregister();
+            Hud.clearDraw2Ds();
             EventHelper$1.off();
             this.isInitialized = false;
         }
@@ -3257,5 +3436,3 @@ var Application$1 = new Application();async function main() {
     }
 }
 main();
-Hud.clearDraw2Ds();
-JsMacros.disableScriptListeners();

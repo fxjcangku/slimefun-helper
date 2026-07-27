@@ -1,0 +1,29 @@
+{
+  "autoEquipGuide": true,
+  "acceptedRawIds": [
+    "minecraft:enchanted_book",
+    "minecraft:written_book",
+    "minecraft:writable_book",
+    "minecraft:book",
+    "minecraft:knowledge_book"
+  ],
+  "acceptedNames": [
+    "SlimeFun · 指南[右键打开]"
+  ],
+  "acceptedNameKeywords": [
+    "SlimeFun · 指南",
+    "Slimefun Guide",
+    "粘液科技指南",
+    "粘液指南"
+  ],
+  "acceptedNbtKeywords": [
+    "slimefun-wiki.guizhanss.cn/GPS",
+    "slimefun:slimefun_guide_mode"
+  ],
+  "menuNameKeywords": {
+    "back": ["返回", "上一页", "Back"],
+    "menu": ["主菜单", "指南", "Menu"],
+    "search": ["搜索", "查找", "Search"]
+  },
+  "offhandFallbackSlots": [45, 40]
+}
