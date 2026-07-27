@@ -89,8 +89,8 @@ JsMacros 是安装在 Minecraft 客户端中的宏与脚本 Mod。请根据自�
 ## 安装粘液助手
 
 1. 先按上方说明安装并确认 JsMacros 可以正常使用。
-2. 打开 [v5.0.0 正式发布页](https://github.com/fxjcangku/jerinin-addon/releases/tag/v5.0.0)，下载 GitHub 提供的 `Source code (zip)`；如果后续提供独立附件，则优先下载粘液助手发布包。
-3. 解压文件，保留 `jsm_scripts/slimefun-helper` 中完整的粘液助手目录，不要只复制 JS 文件。
+2. 打开 [v5.0.0 正式发布页](https://github.com/fxjcangku/slimefun-helper/releases/tag/v5.0.0)，下载附件 `V5.0.0.zip`。
+3. 解压文件，保留完整的粘液助手目录，不要只复制 JS 文件。
 4. 打开 JsMacros 的脚本/宏目录。建议从游戏内 JsMacros 界面打开该目录，避免放错 Minecraft 实例。
 5. 将整个“粘液助手”文件夹复制到 JsMacros 脚本目录，确保 JS 文件旁边仍有 `config` 和 `html` 目录。
 6. 在 JsMacros 中新建宏或事件，脚本类型选择 JavaScript，然后选择 `粘液助手/粘液助手 V5.0.0.js`。
