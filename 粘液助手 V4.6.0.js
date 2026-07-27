@@ -2312,34 +2312,34 @@ var SlimefunGuideManager$1 = new SlimefunGuideManager();class HudManager {
             this._d2d.unregister();
         };
         this.initHud = () => {
-            const width = this._d2d.getWidth();
             const height = this._d2d.getHeight();
-            const margin = Math.max(8, AppConfig.ui.margin * 2);
-            const lineHeight = AppConfig.ui.lineHeight;
-            const top = Math.max(32, Math.round(height * 0.22));
-            const bottom = Math.min(height - 12, Math.round(height * 0.82));
-            const columnGap = 10;
-            const columnWidth = Math.floor((width - margin * 2 - columnGap * 2) / 3);
-            const columns = [
-                { data: this._make, title: '制作需求 · 0', color: AppConfig.ui.colors.make },
-                { data: this._missing, title: '缺失材料 · 0', color: AppConfig.ui.colors.missing },
-                { data: this._queue, title: '合成队列 · 0', color: AppConfig.ui.colors.queue },
+            const [top, middle, bottom] = [
+                AppConfig.ui.topPercent,
+                AppConfig.ui.middlePercent,
+                AppConfig.ui.bottomPercent,
+            ].map((n) => Math.round(height * (n / 100)));
+            const [margin, colWidth, lineHeight] = [
+                AppConfig.ui.margin,
+                AppConfig.ui.columnWidth,
+                AppConfig.ui.lineHeight,
             ];
-            this.drawText(`§l${AppConfig.script.name} §b${AppConfig.script.version}`, margin, top - lineHeight * 2 - 4, AppConfig.ui.colors.brand);
-            this.drawText(`§7维护者 §f§l${AppConfig.script.maintainer}`, margin, top - lineHeight - 4, AppConfig.ui.colors.muted);
-            columns.forEach((column, index) => {
-                const x = margin + index * (columnWidth + columnGap);
-                this.draw(column.data, column.title, top, bottom, x, lineHeight, column.color, columnWidth);
-            });
+            const startX = AppConfig.ui.leftMargin;
+            this.drawText(`§l${AppConfig.script.name} §b${AppConfig.script.version}`, startX, top - lineHeight - margin, AppConfig.ui.colors.brand);
+            this.drawText(`§7维护者 §f§l${AppConfig.script.maintainer}`, startX, top - lineHeight * 2 - margin, AppConfig.ui.colors.muted);
+            this.draw(this._make, '制作需求 · 0', top, middle - margin, startX, lineHeight, AppConfig.ui.colors.make);
+            this.draw(this._missing, '缺失材料 · 0', middle, bottom - margin, startX, lineHeight, AppConfig.ui.colors.missing);
+            this.draw(this._queue, '合成队列 · 0', top, bottom - margin, startX + margin + colWidth, lineHeight, AppConfig.ui.colors.queue);
         };
-        this.draw = (o, title, startY, endY, startX, lineHeight, titleColor, columnWidth) => {
-            o.title = this.drawText(`§l${title}`, startX, startY, titleColor);
-            const separatorLength = Math.max(8, Math.floor(columnWidth / 6));
-            this.drawText('─'.repeat(separatorLength), startX, startY + lineHeight, AppConfig.ui.colors.muted);
-            for (let y = startY + lineHeight * 2; y <= endY; y += lineHeight) {
-                const text = this.drawText('', startX, y, AppConfig.ui.colors.content);
-                if (text)
-                    o.list.push(text);
+        this.draw = (o, title, startY, endY, startX, lineHeight, color) => {
+            for (let y = startY; y <= endY; y += lineHeight) {
+                if (y === startY) {
+                    o.title = this.drawText(`§l${title}`, startX, y, color);
+                }
+                else {
+                    const text = this.drawText('', startX, y, AppConfig.ui.colors.content);
+                    if (text)
+                        o.list.push(text);
+                }
             }
         };
         this.updateMakeHud = (list) => {
