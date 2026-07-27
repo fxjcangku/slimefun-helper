@@ -162,7 +162,6 @@ JsMacros 是安装在 Minecraft 客户端中的宏与脚本 Mod。请根据自�
 ```text
 粘液助手/
 ├─ 粘液助手 V5.0.0.js
-├─ 粘液助手 V4.5.2.js（历史参考版）
 ├─ 使用说明.md
 ├─ config/
 │  ├─ 指南识别.json
