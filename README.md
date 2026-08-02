@@ -1,6 +1,14 @@
 <div align="center">
 
-<img src="https://capsule-render.vercel.app/api?type=venom&color=0:000000,20:021a00,50:0a3300,80:1a5c00,100:0d2600&height=300&section=header&text=SLIMEFUN%20HELPER&fontSize=64&fontColor=39ff14&fontAlignY=42&desc=🟢%20JsMacros%20·%20Minecraft%20·%20粘液科技%20全自动合成助手%20🟢&descAlignY=64&descColor=76ff03&animation=twinkling&stroke=39ff14&strokeWidth=1" width="100%"/>
+<img src="https://capsule-render.vercel.app/api?type=shark&color=0:000000,30:021a00,60:0a3300,90:1a5c00,100:000000&height=280&section=header&reversal=false&animation=fadeIn" width="100%"/>
+
+<br/>
+
+<img src="https://readme-typing-svg.demolab.com?font=Press+Start+2P&size=24&duration=3000&pause=1000&color=39FF14&center=true&vCenter=true&width=800&height=80&lines=SLIMEFUN+HELPER;Auto+Craft+Assistant;V5.0.0+STABLE;JsMacros+%2B+Minecraft" alt="Typing SVG"/>
+
+<br/>
+
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=16&duration=4000&pause=800&color=76FF03&center=true&vCenter=true&width=700&height=40&lines=🟢+JsMacros+·+Minecraft+·+粘液科技+全自动合成助手+🟢" alt="subtitle"/>
 
 <br/>
 
