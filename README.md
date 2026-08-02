@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Minecraft%20Slimefun%20mod%20banner%2C%20green%20glowing%20slime%20blocks%20and%20slime%20balls%20floating%2C%20cute%20pixel%20art%20green%20slime%20creature%20with%20big%20eyes%2C%20laboratory%20with%20glowing%20green%20potions%20and%20machines%2C%20dark%20forest%20background%2C%20neon%20green%20and%20lime%20color%20scheme%2C%20magical%20science%20atmosphere%2C%20cinematic%20wide%20game%20banner&image_size=landscape_16_9" width="100%"/>
+<img src="https://capsule-render.vercel.app/api?type=venom&color=0:0a0a0a,30:0a1a0a,60:1a4a00,100:0d3d0d&height=280&section=header&text=SLIMEFUN%20HELPER&fontSize=62&fontColor=39ff14&fontAlignY=40&desc=🟢%20JsMacros%20·%20Minecraft%20·%20粘液科技自动合成助手%20🟢&descAlignY=62&descColor=7fff7f&animation=twinkling" width="100%"/>
 
 <br/>
 
