@@ -1,178 +1,241 @@
-# Slimefun 自动合成助手
+<div align="center">
 
-基于 JsMacros 的粘液科技配方读取、材料计算、仓储补货与自动合成工具。
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:0a1a0a,50:0d2b0d,100:1a4a1a&height=220&section=header&text=SLIMEFUN%20HELPER&fontSize=60&fontColor=39ff14&fontAlignY=38&desc=JsMacros%20%7C%20Minecraft%20%7C%20粘液科技自动合成助手&descAlignY=58&descColor=7fff7f&animation=fadeIn" width="100%"/>
 
-> 当前版本：V5.0.0
->
-> 维护者：Jerinin
->
-> 运行环境：Minecraft 客户端 + JsMacros
+<br/>
 
-## 维护版说明
+```
+  ██████╗ ██╗     ██╗███╗   ███╗███████╗    ██╗  ██╗███████╗██╗     ██████╗ ███████╗██████╗
+  ██╔════╝ ██║     ██║████╗ ████║██╔════╝    ██║  ██║██╔════╝██║     ██╔══██╗██╔════╝██╔══██╗
+  ███████╗ ██║     ██║██╔████╔██║█████╗      ███████║█████╗  ██║     ██████╔╝█████╗  ██████╔╝
+  ╚════██║ ██║     ██║██║╚██╔╝██║██╔══╝      ██╔══██║██╔══╝  ██║     ██╔═══╝ ██╔══╝  ██╔══██╗
+  ███████║ ███████╗██║██║ ╚═╝ ██║███████╗    ██║  ██║███████╗███████╗██║     ███████╗██║  ██║
+  ╚══════╝ ╚══════╝╚═╝╚═╝     ╚═╝╚══════╝    ╚═╝  ╚═╝╚══════╝╚══════╝╚═╝     ╚══════╝╚═╝  ╚═╝
+```
 
-本仓库提供由 Jerinin 持续维护的兼容版本。为避免失效群组、旧联系方式或无法持续维护的外部入口误导使用者，当前文档仅保留本仓库、Release 页面及必要的官方依赖链接。历史贡献和许可证信息仍按 [LICENSE](LICENSE) 保留，此渠道调整不改变原项目的许可证归属。
+<br/>
 
-## 功能概览
+[![Version](https://img.shields.io/badge/Version-V5.0.0-39ff14?style=for-the-badge&logo=leaflet&logoColor=white)](https://github.com/fxjcangku/slimefun-helper/releases)
+[![Minecraft](https://img.shields.io/badge/Minecraft-JsMacros-4caf50?style=for-the-badge&logo=minecraft&logoColor=white)](https://modrinth.com/mod/jsmacros)
+[![Language](https://img.shields.io/badge/JavaScript-ES2021-8bc34a?style=for-the-badge&logo=javascript&logoColor=white)](.)
+[![License](https://img.shields.io/badge/License-MIT-66bb6a?style=for-the-badge)](LICENSE)
+[![Maintained](https://img.shields.io/badge/Maintained-Jerinin-2e7d32?style=for-the-badge&logo=github&logoColor=white)](.)
 
-| 功能 | 说明 |
-| --- | --- |
-| 配方读取 | 从粘液科技指南批量读取分类配方，或单独读取当前配方 |
-| 材料计算 | 自动分析配方依赖、现有库存和缺失材料 |
-| 合成队列 | 根据依赖关系生成合理的自动合成顺序 |
-| 仓储补货 | 扫描附近容器，校验实时槽位后自动取出材料 |
-| 工作站执行 | 支持配置化的单方块及多方块工作站自动合成 |
-| 黑名单 | 排除不希望自动拆分或自动处理的配方 |
-| HUD | 以紧凑三栏显示制作需求、缺失材料和合成队列 |
-| 指南兼容 | 通过独立配置识别跨版本服务器的指南和菜单物品 |
-| 自动副手 | 自动寻找背包内指南并安全交换到副手 |
-| 数量快捷操作 | 在配方详情页按 ±1、±32、±64 调整制作数量 |
-| 配置管理器 | 使用本地网页编辑并导出工作站配置 |
+<br/>
 
-## V5.0.0 亮点
+> ### 🟢 基于 JsMacros 的粘液科技全自动化解决方案
+> *配方读取 · 材料计算 · 仓储补货 · 自动合成 · 实时 HUD*
 
-### 指南兼容与副手管理
+<br/>
 
-- 新增独立的 `config/指南识别.json`，可配置指南原版 ID、名称及 NBT 关键词
+```
+    ●  ●  ●        粘  液  助  手        ●  ●  ●
+   ● ● ● ● ●   V 5 . 0 . 0   S T A B L E   ● ● ● ● ●
+    ●  ●  ●        by  Jerinin        ●  ●  ●
+```
+
+</div>
+
+---
+
+<div align="center">
+
+### `🧪 配方读取` &nbsp;·&nbsp; `⚗️ 材料计算` &nbsp;·&nbsp; `📦 仓储补货` &nbsp;·&nbsp; `🤖 自动合成` &nbsp;·&nbsp; `📊 实时HUD`
+
+</div>
+
+---
+
+## 🟢 项目概览
+
+<table>
+<tr>
+<td width="55%">
+
+**Slimefun Helper** 是 **Jerinin** 维护的 JsMacros 粘液科技全自动化脚本。
+
+从指南批量读取配方、智能分析依赖链、实时扫描仓储、一键自动合成——无需手动逐步操作，让粘液科技的繁琐材料链变得全自动。
+
+</td>
+<td width="45%">
+
+```
+运行环境   Minecraft + JsMacros
+脚本语言   JavaScript
+当前版本   V5.0.0
+维护者     Jerinin
+许可证     MIT
+```
+
+</td>
+</tr>
+</table>
+
+---
+
+## ✨ 功能模块
+
+<table>
+<thead>
+<tr>
+<th width="140">功能</th>
+<th>说明</th>
+<th width="90">状态</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>🟢 <b>配方读取</b></td><td>从粘液科技指南批量读取分类配方，或单独读取当前配方页</td><td align="center"><code>稳定</code></td></tr>
+<tr><td>🧮 <b>材料计算</b></td><td>自动分析配方依赖树、对比现有库存、精确列出缺失材料</td><td align="center"><code>稳定</code></td></tr>
+<tr><td>🔄 <b>合成队列</b></td><td>根据依赖关系生成最优合成顺序，避免前置材料缺失</td><td align="center"><code>稳定</code></td></tr>
+<tr><td>📦 <b>仓储补货</b></td><td>扫描附近所有容器，校验实时槽位后自动取出所需材料</td><td align="center"><code>稳定</code></td></tr>
+<tr><td>⚙️ <b>工作站执行</b></td><td>支持配置化的单方块及多方块工作站全自动合成</td><td align="center"><code>稳定</code></td></tr>
+<tr><td>🚫 <b>黑名单</b></td><td>排除不希望自动拆分或处理的配方，实时切换无需重启</td><td align="center"><code>稳定</code></td></tr>
+<tr><td>📊 <b>HUD 显示</b></td><td>紧凑三栏实时显示制作需求、缺失材料和合成队列</td><td align="center"><code>稳定</code></td></tr>
+<tr><td>📖 <b>指南兼容</b></td><td>通过独立配置识别跨版本服务器的指南和菜单物品</td><td align="center"><code>稳定</code></td></tr>
+<tr><td>🤚 <b>自动副手</b></td><td>启动时自动寻找背包内指南并安全交换到副手</td><td align="center"><code>稳定</code></td></tr>
+<tr><td>🔢 <b>数量快捷操作</b></td><td>配方详情页按 ±1、±32、±64 快速调整制作数量</td><td align="center"><code>稳定</code></td></tr>
+<tr><td>🖥️ <b>配置管理器</b></td><td>本地网页可视化编辑并导出工作站配置</td><td align="center"><code>稳定</code></td></tr>
+</tbody>
+</table>
+
+---
+
+## 🌿 V5.0.0 更新亮点
+
+<details open>
+<summary><b>🟢 指南兼容与副手管理</b></summary>
+<br/>
+
+- 新增独立 `config/指南识别.json`，可配置指南原版 ID、名称及 NBT 关键词
 - 兼容代理或跨版本服务器剥离 Slimefun PDC 后的自定义指南
-- 仅在启动时自动从主背包或快捷栏寻找指南并放入副手，运行后可自由换下
-- 副手原物品会交换回指南原槽位，校验失败时自动还原
+- 仅在启动时自动将指南交换到副手，运行后可自由换下
+- 副手原物品交换回指南原槽位，校验失败时自动还原
 
-### 配方页面兼容
+</details>
 
-- 菜单导航物品支持按名称关键词识别，降低代理服菜单 ID 丢失的影响
+<details>
+<summary><b>🧪 配方页面兼容</b></summary>
+<br/>
+
+- 菜单导航物品支持按名称关键词识别，降低代理服菜单 ID 丢失影响
 - 放宽分类列表和配方详情的固定 Slimefun ID 限制
-- 保留页面结构、容器类型和槽位布局校验，减少普通箱子误识别
+- 保留页面结构、容器类型和槽位布局校验
 
-### 数量快捷操作
+</details>
 
-- 配方详情页新增三行两列数量按钮
-- 支持 `数量+1/-1`、`数量+32/-32`、`数量+64/-64`，并提供“数量归零”按钮
-- 数量变化会重新读取当前产物槽，并复用原有制作列表、材料计算和 HUD 刷新流程
-- HUD 在数量旁按物品实际堆叠上限显示组数，自动区分每组 64、16 和不可堆叠物品
-- 黑名单操作会立即刷新当前配方页按钮状态，无需关闭指南
+<details>
+<summary><b>🔢 数量快捷操作</b></summary>
+<br/>
 
-### HUD 与界面
-
-- HUD 采用基于 V4.5.2 的紧凑增强设计：制作需求、缺失材料、合成队列
-- 保留固定栏宽和原版占用范围，避免按屏幕宽度展开并遮挡游戏画面
-- 标题和物品名使用粗体，关键数量使用绿、红、蓝三色区分
-- 增加栏目条目数、空列表状态、长名称省略和实际堆叠组数换算
-- 配方读取、黑名单与数量按钮统一显示在指南右侧并带屏幕边界保护
-
-### 问题修复
-
-- 修复数量快捷按钮和“数量归零”在跨版本物品 ID 环境下无响应的问题
-- 修复加入或移出黑名单后按钮状态不能实时切换的问题
-- 修复脚本运行期间持续抢占副手、无法自由更换副手物品的问题
-- 修复 HUD 横向铺满屏幕及按钮重复叠加的问题
-- 修复重新启动脚本时旧 Draw2D 合成 HUD 残留的问题
-
-### 维护信息
-
-- 身份字段调整为“维护者 Jerinin”，明确当前版本的维护责任
-- 整合支持渠道，移除失效、过时或无法由当前维护者持续响应的外部联系入口
-- 历史贡献与许可证信息继续按仓库 `LICENSE` 保留
-- 保留 V4.5.4 的自动合成稳定性、仓储校验和配置写入修复
-
-## 必装前置：JsMacros
-
-> **本项目不是独立 Mod，而是由 JsMacros 执行的 JavaScript 脚本。没有安装 JsMacros，就无法导入或运行 `粘液助手 V5.0.0.js`。**
-
-JsMacros 是安装在 Minecraft 客户端中的宏与脚本 Mod。请根据自己的 **Minecraft 版本** 和 **Fabric/Forge 加载器** 下载完全匹配的文件：
-
-- [JsMacros 官方 GitHub Releases](https://github.com/JsMacros/JsMacros/releases)
-- [JsMacros 官方 Modrinth 页面](https://modrinth.com/mod/jsmacros/versions)
-- [JsMacros 官方文档](https://jsmacros.wagyourtail.xyz/)
-
-不要混用不同 Minecraft 版本或不同加载器的 JAR。例如 Fabric 客户端只能安装对应版本的 Fabric 构建。将下载的 JsMacros `.jar` 放入客户端的 `mods` 文件夹，然后重新启动 Minecraft；能够打开 JsMacros 配置/宏界面即表示前置安装成功。
-
-## 安装粘液助手
-
-1. 先按上方说明安装并确认 JsMacros 可以正常使用。
-2. 打开 [v5.0.0 正式发布页](https://github.com/fxjcangku/slimefun-helper/releases/tag/v5.0.0)，下载附件 `V5.0.0.zip`。
-3. 解压文件，保留完整的粘液助手目录，不要只复制 JS 文件。
-4. 打开 JsMacros 的脚本/宏目录。建议从游戏内 JsMacros 界面打开该目录，避免放错 Minecraft 实例。
-5. 将整个“粘液助手”文件夹复制到 JsMacros 脚本目录，确保 JS 文件旁边仍有 `config` 和 `html` 目录。
-6. 在 JsMacros 中新建宏或事件，脚本类型选择 JavaScript，然后选择 `粘液助手/粘液助手 V5.0.0.js`。
-7. 为宏设置一个方便的按键，进入支持粘液科技的服务器。
-8. 确保粘液科技指南位于副手、主背包或快捷栏，然后按绑定键运行脚本；指南不在副手时会自动交换过去。
-9. 聊天栏出现“脚本已启动”，且 HUD 显示制作需求、缺失材料和合成队列，即表示启动成功。
-
-## 使用教程
-
-### 读取配方
-
-1. 启动脚本后打开粘液科技指南。
-2. 进入需要读取的分类或具体配方页面。
-3. 使用指南右侧的按钮：
-   - **读取配方**：读取当前分类中的配方。
-   - **读取当前配方**：只保存当前展示的配方。
-   - **添加到黑名单**：阻止该物品参与自动合成。
-   - **从黑名单移除**：恢复该物品的自动合成。
-   - **数量+1/-1**、**数量+32/-32**、**数量+64/-64**：调整当前产物的制作数量。
-4. 聊天栏提示读取成功后，配方会保存到 `config/配方.json`。
-
-### 调整制作数量
-
-进入具体配方详情页后，指南右侧会显示三行两列数量按钮：
-
-```text
+```
 数量+1    数量-1
 数量+32   数量-32
 数量+64   数量-64
       数量归零
 ```
 
-点击按钮会调整当前产物数量，并同步刷新制作需求、缺失材料和合成队列。原有点击产物槽的快捷操作仍然保留。
+- 数量变化自动重新计算制作列表、材料计算和 HUD
+- HUD 按物品实际堆叠上限显示组数，自动区分 64/16/不可堆叠
 
-### 开始自动合成
+</details>
 
-1. 在指南中设置好需要制作的物品数量。
-2. 检查 HUD 的材料列表和合成队列是否正确。
-3. 确保材料位于附近受支持的存储容器中，工作站已按配置正确搭建，并预留足够背包空间。
-4. 在配方页面点击工作站物品并关闭指南，脚本会开始扫描仓储、补充材料并依次合成。
-5. 合成期间不要随意移动仓储物品或拆除工作站。
+<details>
+<summary><b>🐛 问题修复</b></summary>
+<br/>
 
-再次运行同一个脚本可请求停止。首次使用请用普通材料进行小批量测试。
+- 修复数量快捷按钮在跨版本物品 ID 环境下无响应
+- 修复黑名单操作后按钮状态不能实时切换
+- 修复脚本运行期间持续抢占副手问题
+- 修复 HUD 横向铺满屏幕及按钮重复叠加
+- 修复重新启动脚本时旧 Draw2D 合成 HUD 残留
 
-完整配置说明和常见问题请查看 [使用说明](使用说明.md)。
+</details>
 
-### 指南识别配置
+---
 
-`config/指南识别.json` 提供以下兼容设置：
+## 🟢 安装说明
 
-- `autoEquipGuide`：脚本启动时是否自动将背包内指南交换到副手；运行期间不会强制放回
-- `acceptedRawIds`：允许作为指南载体的原版物品 ID
-- `acceptedNames`、`acceptedNameKeywords`：完整名称与名称关键词
-- `acceptedNbtKeywords`：服务器指南 NBT 中稳定存在的关键词
-- `menuNameKeywords`：返回、主页和搜索等菜单物品名称关键词
-- `offhandFallbackSlots`：JsMacros 无法返回副手映射时尝试的后备槽位
+### 前置：JsMacros
 
-修改配置后需要重新启动脚本。为避免把普通书误判为指南，请同时限制物品 ID，并使用足够具体的名称或 NBT 特征。
+> **本项目不是独立 Mod，必须先安装 JsMacros 才能运行。**
 
-## 使用前须知
+| 资源 | 链接 |
+|------|------|
+| GitHub Releases | [JsMacros/JsMacros](https://github.com/JsMacros/JsMacros/releases) |
+| Modrinth | [modrinth.com/mod/jsmacros](https://modrinth.com/mod/jsmacros/versions) |
+| 官方文档 | [jsmacros.wagyourtail.xyz](https://jsmacros.wagyourtail.xyz/) |
 
-- 不同服务器的 Slimefun 附属、菜单槽位和工作站结构可能不同，请先用普通材料小批量测试。
-- 自动合成前请预留足够的背包空间，并确认仓储和工作站处于交互范围内。
-- 使用自动操作前，请确认服务器规则允许客户端脚本。
-- 日志保存在 `logs/slimefun-helper.log`，遇到问题时请同时提供日志和游戏截图。
+### 安装步骤
 
-## 项目结构
-
-```text
-粘液助手/
-├─ 粘液助手 V5.0.0.js
-├─ 使用说明.md
-├─ config/
-│  ├─ 指南识别.json
-│  ├─ 配方.json
-│  ├─ 工作站.json
-│  └─ 黑名单.json
-├─ logs/                         运行后生成日志目录
-└─ html/
-   └─ 工作站配置管理器.html
+```
+1. 确认 JsMacros 已正常安装并可打开宏界面
+2. 前往 Release 页面下载 V5.0.0.zip
+3. 解压，保留完整目录（不要只复制 .js 文件）
+4. 将"粘液助手"文件夹复制到 JsMacros 脚本目录
+5. 新建宏 → 类型选 JavaScript → 选择粘液助手 V5.0.0.js
+6. 绑定按键 → 进入粘液科技服务器 → 按键运行
+7. HUD 显示"制作需求 / 缺失材料 / 合成队列"即启动成功
 ```
 
-## 许可证
+---
 
-本项目使用 [MIT License](LICENSE)。
+## 🤖 使用流程
+
+```
+打开指南  →  进入分类页  →  点击「读取配方」
+    ↓
+查看 HUD 确认材料清单和合成队列
+    ↓
+点击工作站物品关闭指南
+    ↓
+脚本自动：扫描仓储 → 补充材料 → 依次合成
+```
+
+> 首次使用请用普通材料进行小批量测试。
+
+---
+
+## 📁 项目结构
+
+```
+粘液助手/
+├─ 粘液助手 V5.0.0.js          主脚本
+├─ 使用说明.md
+├─ config/
+│  ├─ 指南识别.json             指南兼容配置
+│  ├─ 配方.json                 读取后保存的配方
+│  ├─ 工作站.json               工作站结构配置
+│  └─ 黑名单.json               排除配方
+├─ logs/                        运行日志（自动生成）
+└─ html/
+   └─ 工作站配置管理器.html      可视化配置编辑器
+```
+
+---
+
+## ⚠️ 使用须知
+
+```
+· 不同服务器的 Slimefun 附属、菜单槽位可能不同，请先小批量测试
+· 合成前请预留足够背包空间，确认仓储和工作站在交互范围内
+· 使用前请确认服务器规则允许客户端脚本
+· 遇到问题请提供 logs/slimefun-helper.log 和游戏截图
+```
+
+---
+
+## 📄 许可证
+
+本项目使用 [MIT License](LICENSE)，历史贡献归属与许可证信息按仓库 LICENSE 保留。
+
+---
+
+<div align="center">
+
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:1a4a1a,50:0d2b0d,100:0a1a0a&height=130&section=footer" width="100%"/>
+
+**Made with 🟢 by Jerinin**
+
+*「粘液科技，交给脚本。」*
+
+</div>
